@@ -1,0 +1,15 @@
+
+dataclean<-function(chr){
+  data <-read.csv(chr,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",5),rep("NULL",3)))
+  data<-data %>%
+    filter(Value != -999) %>%
+    group_by(Month) %>%
+    mutate(mean_Value_Mon = mean(Value)) %>%
+    group_by(Month,Day) %>%
+    mutate(mean_Value_Day = mean(Value)) %>%
+    ungroup()
+}
+#rbind
+sh2015<-dataclean("sh2015.csv")
+sh2014<-dataclean("sh2014.csv")
+sh<-rbind(sh2015,sh2014)
