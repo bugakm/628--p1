@@ -1,0 +1,36 @@
+---
+title: "628 Group4 Key problem 2"
+author: "Liqiang Pu"
+output: html_document
+---
+#### plan approach
+* 1. Combine all the data into one csv file from 2012 to 2015 for our interesting city (Like Beijing).
+```{r}
+datacombine<-function(chr1,chr2,chr3,chr4){
+  data1 <-read.csv(chr1,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",5),rep("NULL",3)))
+  data2 <-read.csv(chr2,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",5),rep("NULL",3)))
+  data3 <-read.csv(chr3,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",5),rep("NULL",3)))
+  data4 <-read.csv(chr4,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",5),rep("NULL",3)))
+  return(rbind(data1,data2,data3,data4))
+}
+bjdirty<-datacombine("bj2012.csv","bj2013.csv","bj2014.csv","bj2015.csv")
+str(bjdirty)
+```
+* 2. Create a new factor variable "week" to the  dataset, set 1 as the weekday , 0 as the weekend.
+```{r}
+#1/1/2012 is Sunday,week=0
+n<-dim(bjdirty)[1]/24 #Total days
+l<-n%/%7 # Total weeks (from Mon to Sun, 7 days)
+m<-n%%7-1 # here m = 4, means for 12/28/2015 to 12/31/2015 , week = 1
+week<-c(rep(0,24),rep(rep(c(rep(1,5),rep(0,2)),each=24),l),rep(c(1,1,1,1),each=24))
+# week variable from 1/1/2012 to 12/31/2015
+bjdirty$week<-week
+```
+* 3. Find all holidays (or some long-term holidays ,like spring festival) for each year, changing the corresponding week vaules.
+
+* 4. Dataclean, and according the pollution level (defined in key problem 1), calculate the precentage of the heavy polluction day (# of days with high pollution level in the group/ total days in the group) for different groups (weekday group: week=1, weekend group: week=0)
+* 5. Make a bar plot to show the counts for high pollution day & little pollution day in each group.
+* 6. Using non parameter test to calculate the p-value for null hypothesis: There is no difference between two groups. 
+* 7. If the p-value is significant ,the different types of lifestyles do have influence on the air quality. Then it's helpful to reduce the pollution by figuring out the main differences between two lifestyle that cause this influence.
+
+* Estimate of addtional time needed : 2-3 weeks
