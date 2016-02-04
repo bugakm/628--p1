@@ -1,0 +1,22 @@
+```{r}
+library(dplyr)
+library(ggplot2)
+dataclean<-function(chr){
+  data <-read.csv(chr,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",5),rep("NULL",3)))
+  data<-data %>%
+    filter(Value != -999) %>%
+    group_by(Month) %>%
+    mutate(mean_Value_Mon = mean(Value)) %>%
+    group_by(Month,Day) %>%
+    mutate(mean_Value_Day = mean(Value)) %>%
+    ungroup()
+}
+Bj2015<-dataclean("Beijing_2015_HourlyPM25_created20160201.csv")
+Bj2015 %>% 
+  filter(Hour %in% 5:24) %>% 
+  group_by(Month,Day) %>% 
+  summarise_each(funs(median,mean,sd,max),Value)
+```
+
+  In common sense, the mean value is affected heavily by the max value, yet the median value is not. Thus we cannot use the mean value or the max value only, but define the max value and the median value together within a day as the criteria.
+  From the vebsite, we know that the there are seven groups for the value of PM2.5, that are, Good(0-50), Moderate(51-100), Unhealthy for Sensetive Groups(101-150), Unhealthy(151-200), Very Unhealthy(201-300), Hazarous(301-500) and Beyond Index(>500). We do not need so many classification groups, so we need to define a new criteria based on the principle made by US State Air Net in China.
