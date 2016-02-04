@@ -1,0 +1,140 @@
+---
+title: "Project1 Week 2 Report"
+author: "Kejia Shi"
+date: "February 4, 2016"
+output: html_document
+---
+# Plan of Approach
+Week 2 Basic exploration and analysis of the seasonal data, find possible factors and gather alternative data
+
+Week 3 Factor analysis and time series analysis of the seasonal data
+
+Week 4 Wrap-up
+
+#Sources of Data
+Basic dataset: StateAir (http://www.stateair.net/)
+
+Alternative datasets and factors still in decision.
+
+
+#Code for Analysis with Documentation
+
+##0. Data Preparation
+
+```{r, eval=FALSE}
+Use pre-cleaned dataset by ditching -999 values (invalid).
+setwd("/Users/KJ/OneDrive/Projects/628Air/data/")
+library(dplyr)
+library(ggplot2)
+dataclean<-function(chr){
+  data <-read.csv(chr,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",5),rep("NULL",3)))
+  data<-data %>%
+    filter(Value != -999) %>%
+    group_by(Month) %>%
+    mutate(mean_Value_Mon = mean(Value)) %>%
+    group_by(Month,Day) %>%
+    mutate(mean_Value_Day = mean(Value)) %>%
+    ungroup()
+}
+```
+
+###perform first cleaning
+
+```{r, eval=FALSE}
+bj2015<-dataclean("bj2015.csv")
+bj2014<-dataclean("bj2014.csv")
+bj2013<-dataclean("bj2013.csv")
+bj2012<-dataclean("bj2012.csv")
+bj2011<-dataclean("bj2011.csv")
+bj<-rbind(bj2011,bj2012,bj2013,bj2014,bj2015)
+save(bj,file="bj.rdata")
+```
+
+##1. Data Cleaning: deal with negative values
+
+```{r, eval=FALSE}
+sum(bj$Value<0)
+bj$Value[bj$Value<0] <- 1/2( lead(bj$Value[bj$Value<0],1,order_by = NULL) + lag(bj$Value[bj$Value<0],1,order_by = NULL) )
+sum(bj$Value<0)
+```
+
+##2. Separate periods and calculate average values as daily index
+
+Standard: from 6am to 10pm use average value of hourly data to represent daily value
+Need to be fixed: Set the standard with the group of daily values
+Then use daily value to completely rewrite bj dataset
+
+##3. Separate different seasons and years and save
+
+3/21,6/22,9/23,12/22
+
+```{r, eval=FALSE}
+Fall<-subset(bj, (bj$Month==9&bj$Day>=23)|bj$Month==10|bj$Month==11|(bj$Month==12&bj$Day<22))
+Fall<-subset(Fall, Year>2011)
+Fall$Season<-"Fall"
+Summer<-subset(bj, (bj$Month==6&bj$Day>=22)|bj$Month==7|bj$Month==8|(bj$Month==9&bj$Day<23))
+Summer<-subset(Summer, Year>2011)
+Summer$Season<-"Summer"
+Spring<-subset(bj, (bj$Month==3&bj$Day>=21)|bj$Month==4|bj$Month==5|(bj$Month==6&bj$Day<22))
+Spring<-subset(Spring, Year>2011)
+Spring$Season<-"Spring"
+Winter<-subset(bj, (bj$Month==12&bj$Day>=22)|bj$Month==1|bj$Month==2|(bj$Month==3&bj$Day<21))
+Winter<-subset(Winter, Year<2015)
+Winter$Season<-"Winter"
+bjs<-rbind(Winter,Spring,Summer,Fall)
+save(Fall,file="fall.rdata")
+save(Summer,file="summer.rdata")
+save(Spring,file="spring.rdata")
+save(Winter,file="winter.rdata")
+save(bjs,file="bjs.rdata")
+```
+
+create natural year column to fix winter data
+
+##4. First exploration of data
+
+general inspectation
+
+make histogram showing different season distributions in one picture
+
+```{r, eval=FALSE}
+hist(Winter$Value)
+hist(Summer$Value)
+ggplot(bjs, aes(Value, fill = Season)) + geom_density(alpha = 0.7)
+```
+
+do the same for each year
+
+plot different years' data of every season
+
+##5. Replicate for different cities
+replicate for Shanghai, Chengdu
+
+#Plan of Writeup
+
+##Summaries and graphs
+Major summary answers the following questions:
+
+1. What are the differences between the smog patterns within different seasons?
+
+2. What are the tendencies through 2012 to 2015?
+
+3. What factors lead to the highs and lows in different seasons?
+
+4. Comparisons between different cities.
+
+This would include plots and graphs depict:
+
+1. Distribution of the smog data
+
+2. Time series analysis plots after possible detrend procedure
+
+3. ...
+
+##Proposed statement to officials
+
+Collaborate with other team members and try to raise feasible suggestions specifically to different seasons to release the terrible air qualities.
+
+#Estimate of Additional Time Needed to Complete Project
+
+Two weeks
