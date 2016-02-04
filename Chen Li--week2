@@ -1,0 +1,80 @@
+Beijing
+```{r}
+library(plyr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+f<-function(data){
+dat <-read.csv(data,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",3),"NULL","integer",rep("NULL",3))) 
+dat<-dat %>% 
+filter(Value != -999) 
+dat<-summarise(group_by(dat,Year,Month,Day),mid=median(Value))
+dat
+}
+B12=f("B2012.csv")
+B13=f("B2013.csv")
+B14=f("B2014.csv")
+B15=f("B2015.csv")
+B=rbind(B12,B13,B14,B15)
+k=c()
+for(i in 1:(dim(B)[1]-1)){
+  k[i]=mean(B$mid[(i+2):(i+3)])-mean(B$mid[i:(i+1)])
+}
+k[order(k)][1:30]
+n=order(k)[1:10]
+l=c(n,n+1,n+2,n+3)
+l=unique(l)
+B[sort(l),]
+
+B1<-summarise(group_by(B,Year,Month),mean=mean(mid))
+d=B1$mean
+t=ts(d,frequency = 12,start=c(2012,1))
+g<- decompose(t)
+plot(g)
+```
+
+Chengdu
+```{r}
+C12=f("C2012.csv")
+C13=f("C2013.csv")
+C14=f("C2014.csv")
+C15=f("C2015.csv")
+C=rbind(C12,C13,C14,C15)
+k=c()
+for(i in 1:(dim(C)[1]-1)){
+  k[i]=mean(C$mid[(i+2):(i+3)])-mean(C$mid[i:(i+1)])
+}
+k[order(k)][1:30]
+n=order(k)[1:10]
+l=c(n,n+1,n+2,n+3)
+l=unique(l)
+C[sort(l),]
+C1<-summarise(group_by(C,Year,Month),mean=mean(mid))
+d=C1$mean
+t=ts(d,frequency = 12,start=c(2012,1))
+g<- decompose(t)
+plot(g)
+```
+
+Shanghai
+```{r}
+S12=f("S2012.csv")
+S13=f("S2013.csv")
+S14=f("S2014.csv")
+S15=f("S2015.csv")
+S=rbind(S12,S13,S14,S15)
+k=c()
+for(i in 1:(dim(S)[1]-1)){
+  k[i]=mean(S$mid[(i+2):(i+3)])-mean(S$mid[i:(i+1)])
+}
+k[order(k)][1:30]
+n=order(k)[1:10]
+l=c(n,n+1,n+2,n+3)
+l=unique(l)
+S[sort(l),]
+S1<-summarise(group_by(S,Year,Month),mean=mean(mid))
+d=S1$mean
+t=ts(d,frequency = 12,start=c(2012,1))
+g<- decompose(t)
+plot(g)
+```
