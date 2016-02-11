@@ -113,10 +113,26 @@ knitr::kable(head(bjclean))
 ```
 
 * 5. Graphical Analysis
-
+ 
 ```{r}
 require(ggplot2)
-ggplot(bjclean,aes(x=DailyIndex,group=Year,fill=week))+geom_bar(show.legend=F)+facet_grid(Year~week)+ggtitle("Heavy Vs Light in each year")
+ggplot(bjclean,aes(x=DailyIndex,group=Year,fill=week))+geom_bar(show.legend=F)+facet_grid(Year~week)+ggtitle("Heavy Vs Light in each year") 
+
+stat<-bjclean%>%
+group_by(week)%>%
+summarise(sum(DailyIndex=="Heavy")/length(week),mean(Value),sd(Value))%>%
+mutate(Year = "12-15")
+stat1<-bjclean%>%
+group_by(Year,week)%>%
+summarise(sum(DailyIndex=="Heavy")/length(week),mean(Value),sd(Value))
+
+stat_bj<-data.frame(rbind(stat1,stat))
+colnames(stat_bj)<-c("Year","Week","Heavy_pollution_probability","mean_PM2.5_value","sd_PM2.5_value ")
+knitr::kable(stat_bj)
+ggplot(subset(stat_bj,Year!="12-15"),aes(x=Year,y=Heavy_pollution_probability,color=Week,group=Week))+geom_point()+geom_line()+ggtitle("Probability of Heavy pollution day")
+
+ggplot(subset(stat_bj,Year!="12-15"),aes(x=Year,y=mean_PM2.5_value,color=Week,group=Week))+geom_point()+geom_line()+ggtitle("Mean PM2.5 Value")
+
 bjclean2013_1<-bjclean %>%
 filter(Year == 2013 & Month ==1 )
 bjclean2015_4<-bjclean %>%
