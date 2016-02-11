@@ -1,0 +1,242 @@
+Stat628  Project1   G4
+========================================================
+
+
+
+
+Yanan Huo 
+
+Liqiang Pu
+
+Kejia Shi
+
+Chen Li
+
+
+
+2016-2-11
+
+
+========================================================
+
+Key question: 
+
+
+Focusing on it is healthy or not to do outside exercise after dinner, like during 8 pm to 10 pm.
+
+
+Will there be significant difference in air quality between weekday and weekend (include holiday).
+
+
+Seasonal trend of the air pollution.
+
+
+Will the government's actions have immediately influence?
+
+
+
+========================================================
+
+
+
+
+1.Data Source -- Our data source is only from the US State Air Net. The main data set we focus on is the AQI of Beijing from 2012 to 2015.
+
+
+
+
+2.Data Cleaning – i) There are 767 negative values of PM2.5 through the 4 years.
+ii) Creating some variables that we need, such as mean and max value of PM2.5 within a day, even the standard deviation.
+
+
+
+
+3.Defining the dependent variable and independent variables with the help of AQI index on the website.
+
+
+
+
+4.Data Set Partition 
+
+
+
+
+
+5.Regression
+
+
+========================================================
+
+
+|Site    | Year| Month| Day| Hour| Value|week    |date     | mean_Value_Day|DailyIndex |
+|:-------|----:|-----:|---:|----:|-----:|:-------|:--------|--------------:|:----------|
+|Beijing | 2012|     1|   1|    0|   303|weekend |2012/1/1 |       50.27083|Light      |
+|Beijing | 2012|     1|   1|    1|   215|weekend |2012/1/1 |       50.27083|Light      |
+|Beijing | 2012|     1|   1|    2|   222|weekend |2012/1/1 |       50.27083|Light      |
+|Beijing | 2012|     1|   1|    3|    85|weekend |2012/1/1 |       50.27083|Light      |
+|Beijing | 2012|     1|   1|    4|    38|weekend |2012/1/1 |       50.27083|Light      |
+|Beijing | 2012|     1|   1|    5|    23|weekend |2012/1/1 |       50.27083|Light      |
+
+
+========================================================
+
+![plot of chunk unnamed-chunk-2](p-figure/unnamed-chunk-2-1.png) 
+
+
+========================================================
+
+
+|Year  |Week    | Heavy_pollution_probability| mean_PM2.5_value| sd_PM2.5_value |
+|:-----|:-------|---------------------------:|----------------:|---------------:|
+|2012  |weekday |                   0.3240676|         90.88951|        83.58873|
+|2012  |weekend |                   0.3714067|         89.77463|        77.50309|
+|2013  |weekday |                   0.3286749|         99.14346|        91.78866|
+|2013  |weekend |                   0.3807959|        107.27857|       110.28676|
+|2014  |weekday |                   0.3371448|         97.94670|        96.33968|
+|2014  |weekend |                   0.3570376|         97.26824|        87.07874|
+|2015  |weekday |                   0.3443309|         81.55317|        90.34917|
+|2015  |weekend |                   0.3431227|         85.41599|        84.40020|
+|12-15 |weekday |                   0.3336732|         92.38656|        90.97424|
+|12-15 |weekend |                   0.3630952|         95.03469|        91.20990|
+
+========================================================
+
+![plot of chunk unnamed-chunk-4](p-figure/unnamed-chunk-4-1.png) 
+
+
+========================================================
+
+![plot of chunk unnamed-chunk-5](p-figure/unnamed-chunk-5-1.png) 
+
+
+
+========================================================
+Seasonal Analysis 
+
+ 
+
+Key Points 
+
+ 
+
+* Goal: understand the tendency and urgency of the smog problem from recent years' data 
+
+* Data Source: StateAir Website Data 
+
+* In different seasons, the general time spans of the smog are different, affected by different climate and weather patterns in that season 
+
+* We want to  
+
+1. Separate the trend and cycle components 
+
+2. Quantitatively measure the formation or spread of a smog (joint with the analysis of datasets of weather conditions) 
+
+
+========================================================
+
+Current work 
+
+ 
+
+* Data Cleaning:  
+
+* Adding Polluted dummy variable (PM2.5>=150) and Heavily-Polluted dummy variable (PM2.5>=300) 
+
+* Getting monthly count numbers 
+
+* Basic Plotting: 
+
+* Numbers of polluted/heavily-polluted days in every month 
+
+* Average polluted days every month from 2012 to 2015 
+
+* Tried STL (Seasonal Trend Decomposition using Loess) 
+
+* Tried using Possion to model monthly data 
+
+
+
+========================================================
+Problems and Future Plans 
+
+ 
+
+* Monthly Data: 48 obs, month unit 
+
+* Weekly Data: constructing new variables measuring weekly features 
+
+* e.g. hours instead of days as counting units (since our dataset is sufficient); 
+
+* Future Plans:  
+
+* Join other datasets: weather/wind and raining situation * From Weather Underground: http://www.wunderground.com 
+
+* Find extra information generated from our dataset (though highly correlated) 
+
+* Finish up STL decomposition 
+
+
+========================================================
+
+
+```
+Source: local data frame [40 x 4]
+Groups: Year, Month [10]
+
+    Year Month   Day   mid
+   (int) (int) (int) (dbl)
+1   2012     1    18 393.5
+2   2012     1    19 416.5
+3   2012     1    20  21.0
+4   2012     1    21  15.5
+5   2013     1    29 445.0
+6   2013     1    30 284.0
+7   2013     1    31 173.0
+8   2013     2     1  21.0
+9   2013    12     7 399.5
+10  2013    12     8 236.0
+..   ...   ...   ...   ...
+```
+
+========================================================
+
+![plot of chunk unnamed-chunk-7](p-figure/unnamed-chunk-7-1.png) 
+
+========================================================
+
+![plot of chunk unnamed-chunk-8](p-figure/unnamed-chunk-8-1.png) 
+
+
+========================================================
+
+![plot of chunk unnamed-chunk-9](p-figure/unnamed-chunk-9-1.png) 
+
+
+========================================================
+
+
+```
+Source: local data frame [37 x 3]
+Groups: Year, Month [8]
+
+    Year Month   Day
+   (int) (int) (int)
+1   2013     1    12
+2   2013     1    13
+3   2013     1    14
+4   2013     1    15
+5   2013     1    16
+6   2013     1    29
+7   2013     1    30
+8   2013     1    31
+9   2013     2     1
+10  2013     2    12
+..   ...   ...   ...
+```
+
+
+========================================================
+
+![plot of chunk unnamed-chunk-11](p-figure/unnamed-chunk-11-1.png) 
+
+
