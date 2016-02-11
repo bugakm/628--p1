@@ -9,7 +9,7 @@ library(ggplot2)
 
 
 #0. Cleaning
-dataclean<-function(chr){
+dataclean_pre<-function(chr){
   data <-read.csv(chr,skip=3,colClasses = c("character",rep("NULL",2),rep("integer",5),rep("NULL",3)))
   data<-data %>%
     filter(Value != -999) %>%
@@ -30,11 +30,11 @@ dailyclean<-function(chr){
     ungroup()
 }
 ###perform first cleaning
-bj2015<-dataclean("bj2015.csv")
-bj2014<-dataclean("bj2014.csv")
-bj2013<-dataclean("bj2013.csv")
-bj2012<-dataclean("bj2012.csv")
-bj2011<-dataclean("bj2011.csv")
+bj2015<-dataclean_pre("bj2015.csv")
+bj2014<-dataclean_pre("bj2014.csv")
+bj2013<-dataclean_pre("bj2013.csv")
+bj2012<-dataclean_pre("bj2012.csv")
+bj2011<-dataclean_pre("bj2011.csv")
 bj<-rbind(bj2011,bj2012,bj2013,bj2014,bj2015)
 save(bj,file="bj.rdata")
 dbj2015<-dailyclean("bj2015.csv")
