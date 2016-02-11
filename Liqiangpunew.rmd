@@ -97,7 +97,7 @@ arrange(Year,Month,Day)
 ```{r}
 dataclean<-function(data){
     newdata<-data %>%
-    filter(Value != -999) %>%
+    filter(Value > 0) %>%
     group_by(Month,Day) %>%
     mutate(mean_Value_Day = mean(Value)) %>%
     ungroup()
