@@ -1,10 +1,13 @@
 ---
-title: "628 Group4 Key problem 2 .new"
+title: "628 Group4 Key problem 2"
 author: "Liqiang Pu"
 output: html_document
 ---
-#### plan approach
-* 1. Combine all the data into one csv file from 2012 to 2015 for our interesting city (Like Beijing).
+#### Key question
+
+#### Plan approach & Results
+* 1. Combine all the data into one csv file from 2012 to 2015 for our interesting city (Here I choose Beijing).
+
 ```{r}
 require(dplyr)
 datacombine<-function(chr1,chr2,chr3,chr4){
@@ -17,9 +20,11 @@ datacombine<-function(chr1,chr2,chr3,chr4){
 bjdirty<-datacombine("bj2012.csv","bj2013.csv","bj2014.csv","bj2015.csv")
 str(bjdirty)
 ```
+
 * 2. Create a new factor variable "week" to the  dataset, set 1 as the weekday , 0 as the weekend.
+
 ```{r}
-#1/1/2012 is Sunday,week=0
+#1/1/2012 is Sunday, set variable week as 0
 n<-dim(bjdirty)[1]/24 #Total days
 l<-n%/%7 # Total weeks (from Mon to Sun, 7 days)
 m<-n%%7-1 # here m = 4, means for 12/28/2015 to 12/31/2015 , week = 1
@@ -30,6 +35,7 @@ str(bjdirty)
 ```
 * 3. Find all holidays (or some long-term holidays ,like spring festival) for each year, changing the corresponding week vaules.
 ```{r}
+#Holiday informations from the Chinese Goverment website :
 #2012 :http://www.gov.cn/zwgk/2011-12/06/content_2012097.htm
 #2013 :http://www.gov.cn/zwgk/2012-12/10/content_2286598.htm
 #2014 :http://www.gov.cn/zwgk/2013-12/11/content_2546204.htm
@@ -72,25 +78,22 @@ WD<-c(WD2012,WD2013,WD2014,WD2015)
 
 bjdirty<-bjdirty%>% 
 mutate(date = paste(Year,Month,Day,sep="/"))
-
 bjdirty0<-bjdirty%>%
 filter(date %in% WE)%>%
 mutate(week = 0)
-
 bjdirty1<-bjdirty%>%
 filter(date %in% WD)%>%
 mutate(week = 1)
-
 bjdirty2<-bjdirty%>%
 filter(!date %in% c(WD,WE))
 
 bjweek<-rbind(bjdirty0,bjdirty1,bjdirty2) %>%
 arrange(Year,Month,Day)
 
-
-
 ```
-* 4. Dataclean, and according the pollution level (defined in key problem 1), calculate the precentage of the heavy polluction day (# of days with high pollution level in the group/ total days in the group) for different groups (weekday group: week=1, weekend group: week=0)
+
+* 4. Dataclean, add the pollution level accroding to the mean daily value.
+
 ```{r}
 dataclean<-function(data){
     newdata<-data %>%
@@ -104,29 +107,28 @@ bjclean<-dataclean(bjweek)
 bjclean$DailyIndex<-as.numeric(bjclean$mean_Value_Day>=100)
 bjclean$week<-gsub("0",replacement="weekend",bjclean$week)
 bjclean$week<-gsub("1",replacement="weekday",bjclean$week)
-```
-* 6. Using non parameter test to calculate the p-value for null hypothesis: There is no difference between two groups. 
-```{r}
-wilcox.test(DailyIndex~week,bjclean) 
-bjweekday<- bjclean %>%
-filter(week == "weekday") %>%
-summarise(sum(DailyIndex)/length(DailyIndex))
-bjweekend<- bjclean  %>%
-filter(week == "weekend") %>%
-summarise(sum(DailyIndex)/length(DailyIndex))
-data.frame(bjweekend,bjweekday)
-```
-* 5. Make a bar plot to show the counts for high pollution day & little pollution day in each group.
-```{r}
 bjclean$DailyIndex<-gsub("0",replacement="Light",bjclean$DailyIndex)
 bjclean$DailyIndex<-gsub("1",replacement="Heavy",bjclean$DailyIndex)
-require(ggplot2)
-ggplot(bjclean,aes(x=DailyIndex,group=Year,fill=week))+ geom_bar(show.legend=F)+facet_grid(Year~week)
+knitr::kable(head(bjclean))
 ```
 
+* 5. Graphical Analysis
 
+```{r}
+require(ggplot2)
+ggplot(bjclean,aes(x=DailyIndex,group=Year,fill=week))+geom_bar(show.legend=F)+facet_grid(Year~week)+ggtitle("Heavy Vs Light in each year")
+bjclean2013_1<-bjclean %>%
+filter(Year == 2013 & Month ==1 )
+bjclean2015_4<-bjclean %>%
+filter(Year == 2015 & Month ==4 )
+bjclean2014<-bjclean %>%
+filter(Year == 2014)
 
-* 7. If the p-value is significant ,the different types of lifestyles do have influence on the air quality. Then it's helpful to reduce the pollution by figuring out the main differences between two lifestyle that cause this influence.
+month_pm<-function(data){
+ggplot(data,aes(x=reorder(Day,mean_Value_Day),y=mean_Value_Day,color=week))+geom_point(size=2)+geom_hline(yintercept=100,linetype="dashed") +xlab("Day")
+}
+month_pm(bjclean2013_1)+ ggtitle("Beijing Daily Mean Pm2.5 Values in 2013 Jan")
+month_pm(bjclean2015_4)+ ggtitle("Beijing Daily Mean Pm2.5 Values in 2015 Apr")
+ggplot(bjclean,aes(x=reorder(Month,mean_Value_Day),y=mean_Value_Day,color=week,group=Year))+geom_point()+geom_hline(yintercept=100,linetype="dashed") +xlab("Month")+facet_grid(~Year)+ ggtitle("Yearly Pattern for Beijing Daily Mean Pm2.5 Values")
 
-* Estimate of addtional time needed : 2-3 weeks
-
+```
