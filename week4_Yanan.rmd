@@ -1,0 +1,132 @@
+---
+title: "project1_new"
+author: "Yanan Huo"
+date: "February 9, 2016"
+output: html_document
+---
+
+####1. Data set resetting
+
+```{r}
+library(dplyr)
+bjclean<-read.csv("bjclean1.csv",head=T)
+str(bjclean)
+bjclean$Value<-as.numeric(bjclean$Value)
+bjclean<-bjclean %>% select(Year,Month,Day,date,Hour,Value, week,mean_Value_Day)
+```
+
+####2. Defining the a new variable: index, based on the AQI index on the US State Air Quality.
+
+```{r}
+bjclean_yes<-bjclean[which(bjclean$Value!="NA"),]
+bjclean_na<-bjclean[-which(bjclean$Value!="NA"),]
+AQIindex<-function(x){
+  index<-numeric(length=length(x))
+  for(i in 1:length(index)){
+    if(x[i]<=50) 
+      index[i]<-0
+    else if((x[i]>=51) & (x[i]<=100)) 
+      index[i]<-1
+    else if((x[i]>=101) & (x[i]<=150))
+      index[i]<-2
+    else if((x[i]>=151) & (x[i]<=200)) 
+      index[i]<-3
+    else if((x[i]>=201) & (x[i]<=300))
+      index[i]<-4
+    else if((x[i]>=301) & (x[i]<=500)) 
+      index[i]<-5
+    else if(x[i]>=501) 
+      index[i]<-6
+  }
+  index<-as.integer(index)
+  return(index)
+}
+
+bjclean1<-bjclean_yes %>% 
+  group_by(Year,Month,Day) %>%
+  mutate(max_Value_Day=max(Value)) %>%
+  mutate(sd_Value_Day=sd(Value)) %>% 
+  mutate(mean_index=AQIindex(mean_Value_Day)) %>%
+  mutate(max_index=AQIindex(max_Value_Day)) %>%
+  select(Year,Month,Day,date,Hour,Value,max_Value_Day,max_index,mean_Value_Day,mean_index,sd_Value_Day,week) %>%
+  ungroup()
+bjclean2<-bjclean_na %>% 
+  group_by(Year,Month,Day) %>%
+  mutate(max_Value_Day=NA) %>% 
+  mutate(sd_Value_Day=NA) %>% 
+  mutate(mean_index=NA) %>%
+  mutate(max_index=NA) %>%
+  select(Year, Month, Day,date, Hour, Value,max_Value_Day,max_index,mean_Value_Day,mean_index,sd_Value_Day,week) %>% 
+  ungroup()
+bjclean<-rbind(bjclean1,bjclean2) %>% arrange(Year,Month,Day,Hour)
+bjclean$mean_index<-as.factor(bjclean$mean_index)
+bjclean$max_index<-as.factor(bjclean$max_index)
+levels(bjclean$mean_index)<-c(levels(bjclean$mean_index),"5","6")
+bjclean$Hour<-as.factor(bjclean$Hour)
+str(bjclean)
+bjclean[c(19155,27891),5]<-2
+write.csv(bjclean,"bjclean2.csv")
+```
+
+####3. Denonting the mean value of PM2.5 of 8:00pm to 10:00pm as the dependent variable we want, and the other means sumed the PM2.5 of every three hours as the independent variables, also with the index of every day. So we need to build a new data set to reverse some rows to columns.
+
+```{r}
+bjclean<-read.csv("bjclean2.csv",head=T)
+Hourselect<-function(x,i){
+  y<-vector("numeric",length=length(x$Hour))
+  y<-bjclean %>% filter(Hour==i) %>% select(Year,Month,Day,date,Value) 
+  return(y)
+}
+Hour0<-Hourselect(bjclean,0)
+Hour1<-Hourselect(bjclean,1)
+Hour2<-Hourselect(bjclean,2)
+Hour3<-Hourselect(bjclean,3)
+Hour4<-Hourselect(bjclean,4)
+Hour5<-Hourselect(bjclean,5)
+Hour6<-Hourselect(bjclean,6)
+Hour7<-Hourselect(bjclean,7)
+Hour8<-Hourselect(bjclean,8)
+Hour9<-Hourselect(bjclean,9)
+Hour10<-Hourselect(bjclean,10)
+Hour11<-Hourselect(bjclean,11)
+Hour12<-Hourselect(bjclean,12)
+Hour13<-Hourselect(bjclean,13)
+Hour14<-Hourselect(bjclean,14)
+Hour15<-Hourselect(bjclean,15)
+Hour16<-Hourselect(bjclean,16)
+Hour17<-Hourselect(bjclean,17)
+Hour18<-Hourselect(bjclean,18)
+Hour19<-Hourselect(bjclean,19)
+Hour20<-Hourselect(bjclean,20)
+Hour21<-Hourselect(bjclean,21)
+Hour22<-Hourselect(bjclean,22)
+Hour23<-Hourselect(bjclean,23)
+
+bjnew<-cbind(Hour0,Hour1=Hour1$Value,Hour2=Hour2$Value,Hour3=Hour3$Value,Hour4=Hour4$Value,Hour5=Hour5$Value,Hour6=Hour6$Value,Hour7=Hour7$Value,Hour8=Hour8$Value,Hour9=Hour9$Value,Hour10=Hour10$Value,Hour11=Hour11$Value,Hour12=Hour12$Value,Hour13=Hour13$Value,Hour14=Hour14$Value,Hour15=Hour15$Value,Hour16=Hour16$Value,Hour17=Hour17$Value,Hour18=Hour18$Value,Hour19=Hour19$Value,Hour20=Hour20$Value,Hour21=Hour21$Value,Hour22=Hour22$Value,Hour23=Hour23$Value) %>% rename(Hour0=Value) 
+
+bjclean_yes<-bjclean[which(bjclean$sd_Value_Day!="NA"),]
+bjclean_na<-bjclean[-which(bjclean$sd_Value_Day!="NA"),]
+bjclean_yes$week<-as.integer(bjclean_yes$week)
+#index_yes<-bjclean_yes %>% group_by(Year,Month,Day) %>% summarise(mean()mean(sd_Value_Day),mean(mean_index),mean(max_index),mean(week))
+#index_na<-bjclean_na %>% group_by(Year,Month,Day) %>% summarise(mean(sd_Value_Day),mean(mean_index),mean(max_index),mean(week))
+#index<-rbind(index_yes,index_na) %>% arrange(Year,Month,Day)
+
+bjclean$week<-as.integer(bjclean$week)
+index<-bjclean %>% group_by(Year,Month,Day) %>% summarise(max=mean(max_Value_Day),mean=mean(mean_Value_Day),sd=mean(sd_Value_Day),mean_index=mean(mean_index),max_index=mean(max_index),week=mean(week))
+index$mean_index<-as.factor(index$mean_index)
+levels(index$mean_index)<-c(levels(index$mean_index),"5","6")
+index$max_index<-as.factor(index$max_index)
+index$week<-as.factor(index$week)
+index<-as.data.frame(index)
+
+bjnew_full<-cbind(bjnew,index) 
+bjnew_full<-bjnew_full[,-c(29,30,31)]
+str(bjnew_full)
+write.csv(bjnew_full,"bjnew.csv")
+```
+
+####4. Mutating the variables of average of every three hours.
+
+```{r}
+bjnew<-read.csv("bjnew.csv",head=T)
+```
