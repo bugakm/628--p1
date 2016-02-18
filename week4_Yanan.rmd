@@ -20,30 +20,31 @@ bjclean<-bjclean %>% select(Year,Month,Day,date,Hour,Value, week,mean_Value_Day)
 ```{r}
 bjclean_yes<-bjclean[which(bjclean$Value!="NA"),]
 bjclean_na<-bjclean[-which(bjclean$Value!="NA"),]
+
 AQIindex<-function(x){
   index<-numeric(length=length(x))
   for(i in 1:length(index)){
     if(x[i]<=50) 
       index[i]<-0
-    else if((x[i]>=51) & (x[i]<=100)) 
+    else if((x[i]>=51)&(x[i]<=100)) 
       index[i]<-1
-    else if((x[i]>=101) & (x[i]<=150))
+    else if((x[i]>=101)&(x[i]<=150))
       index[i]<-2
-    else if((x[i]>=151) & (x[i]<=200)) 
+    else if((x[i]>=151)&(x[i]<=200)) 
       index[i]<-3
-    else if((x[i]>=201) & (x[i]<=300))
+    else if((x[i]>=201)&(x[i]<=300))
       index[i]<-4
-    else if((x[i]>=301) & (x[i]<=500)) 
+    else if((x[i]>=301)&(x[i]<=500)) 
       index[i]<-5
     else if(x[i]>=501) 
       index[i]<-6
   }
-  index<-as.integer(index)
   return(index)
 }
 
 bjclean1<-bjclean_yes %>% 
   group_by(Year,Month,Day) %>%
+  mutate(mean_Value_Day=mean(Value)) %>% 
   mutate(max_Value_Day=max(Value)) %>%
   mutate(sd_Value_Day=sd(Value)) %>% 
   mutate(mean_index=AQIindex(mean_Value_Day)) %>%
@@ -65,7 +66,7 @@ levels(bjclean$mean_index)<-c(levels(bjclean$mean_index),"5","6")
 bjclean$Hour<-as.factor(bjclean$Hour)
 str(bjclean)
 bjclean[c(19155,27891),5]<-2
-write.csv(bjclean,"bjclean2.csv")
+write.csv(bjclean,"bjclean2.csv",row.names = F)
 ```
 
 ####3. Denonting the mean value of PM2.5 of 8:00pm to 10:00pm as the dependent variable we want, and the other means sumed the PM2.5 of every three hours as the independent variables, also with the index of every day. So we need to build a new data set to reverse some rows to columns.
@@ -107,9 +108,7 @@ bjnew<-cbind(Hour0,Hour1=Hour1$Value,Hour2=Hour2$Value,Hour3=Hour3$Value,Hour4=H
 bjclean_yes<-bjclean[which(bjclean$sd_Value_Day!="NA"),]
 bjclean_na<-bjclean[-which(bjclean$sd_Value_Day!="NA"),]
 bjclean_yes$week<-as.integer(bjclean_yes$week)
-#index_yes<-bjclean_yes %>% group_by(Year,Month,Day) %>% summarise(mean()mean(sd_Value_Day),mean(mean_index),mean(max_index),mean(week))
-#index_na<-bjclean_na %>% group_by(Year,Month,Day) %>% summarise(mean(sd_Value_Day),mean(mean_index),mean(max_index),mean(week))
-#index<-rbind(index_yes,index_na) %>% arrange(Year,Month,Day)
+
 
 bjclean$week<-as.integer(bjclean$week)
 index<-bjclean %>% group_by(Year,Month,Day) %>% summarise(max=mean(max_Value_Day),mean=mean(mean_Value_Day),sd=mean(sd_Value_Day),mean_index=mean(mean_index),max_index=mean(max_index),week=mean(week))
@@ -120,13 +119,88 @@ index$week<-as.factor(index$week)
 index<-as.data.frame(index)
 
 bjnew_full<-cbind(bjnew,index) 
-bjnew_full<-bjnew_full[,-c(29,30,31)]
+bjnew_full<-bjnew_full[,-c(4,29,30,31)]
 str(bjnew_full)
-write.csv(bjnew_full,"bjnew.csv")
+bjnew_full$Year<-as.factor(bjnew_full$Year)
+bjnew_full$Month<-as.factor(bjnew_full$Month)
+bjnew_full$Day<-as.factor(bjnew_full$Day)
+bjnew_full$week<-as.factor(bjnew_full$week)
+
+
+write.csv(bjnew_full,"bjnew.csv",row.names = F)
 ```
 
 ####4. Mutating the variables of average of every three hours.
 
 ```{r}
 bjnew<-read.csv("bjnew.csv",head=T)
+str(bjnew)
+bjnew$Hour0<-as.numeric(bjnew$Hour0)
+bjnew$Hour1<-as.numeric(bjnew$Hour1)
+bjnew$Hour2<-as.numeric(bjnew$Hour2)
+bjnew$Hour3<-as.numeric(bjnew$Hour3)
+bjnew$Hour4<-as.numeric(bjnew$Hour4)
+bjnew$Hour5<-as.numeric(bjnew$Hour5)
+bjnew$Hour6<-as.numeric(bjnew$Hour6)
+bjnew$Hour7<-as.numeric(bjnew$Hour7)
+bjnew$Hour8<-as.numeric(bjnew$Hour8)
+bjnew$Hour9<-as.numeric(bjnew$Hour9)
+bjnew$Hour10<-as.numeric(bjnew$Hour10)
+bjnew$Hour11<-as.numeric(bjnew$Hour11)
+bjnew$Hour12<-as.numeric(bjnew$Hour12)
+bjnew$Hour13<-as.numeric(bjnew$Hour13)
+bjnew$Hour14<-as.numeric(bjnew$Hour14)
+bjnew$Hour15<-as.numeric(bjnew$Hour15)
+bjnew$Hour16<-as.numeric(bjnew$Hour16)
+bjnew$Hour17<-as.numeric(bjnew$Hour17)
+bjnew$Hour18<-as.numeric(bjnew$Hour18)
+bjnew$Hour19<-as.numeric(bjnew$Hour19)
+bjnew$Hour20<-as.numeric(bjnew$Hour20)
+bjnew$Hour21<-as.numeric(bjnew$Hour21)
+bjnew$Hour22<-as.numeric(bjnew$Hour22)
+bjnew$Hour23<-as.numeric(bjnew$Hour23)
+str(bjnew)
+mean3<-rowMeans(matrix(c(bjnew$Hour2,bjnew$Hour3,bjnew$Hour4),ncol=3))
+mean6<-rowMeans(matrix(c(bjnew$Hour5,bjnew$Hour6,bjnew$Hour7),ncol=3))
+mean9<-rowMeans(matrix(c(bjnew$Hour8,bjnew$Hour9,bjnew$Hour10),ncol=3))
+mean12<-rowMeans(matrix(c(bjnew$Hour11,bjnew$Hour12,bjnew$Hour13),ncol=3))
+mean15<-rowMeans(matrix(c(bjnew$Hour14,bjnew$Hour15,bjnew$Hour16),ncol=3))
+mean18<-rowMeans(matrix(c(bjnew$Hour17,bjnew$Hour18,bjnew$Hour19),ncol=3))
+mean21<-rowMeans(matrix(c(bjnew$Hour20,bjnew$Hour21,bjnew$Hour22),ncol=3))
 ```
+
+* We want to calculate the first mean value "mean0" averaged by 11pm, 0am and 1am, but we do not have the data of 11pm of 12/31/2011, thus we cannnot calculate the "mean0" for 1/1/2012. For the convenience of building a model, we have to throw away the data of 1/1/2012, since comparing to throw away every 11 pm data, throwing away the first day lose less information. The following part is to 
+rearrange the value of Hour23, where we need to push back every value of Hour23 for the convenience to calculate AQI average of every successive three hours.
+
+```{r}
+Hour23_back<-c(0,bjnew$Hour23[-1461])
+mean0<-rowMeans(matrix(c(Hour23_back,bjnew$Hour0,bjnew$Hour1),ncol=3))
+m<-matrix(c(mean0,mean3,mean6,mean9,mean12,mean15,mean18),ncol=7)
+meanall<-apply(m,1,mean)
+
+k<-as.matrix(bjnew[,4:26],ncol=23)
+k<-matrix(c(k,Hour23_back),ncol=24)
+maxall<-apply(k,1,max)
+sd<-apply(k,1,sd)
+
+mean_yes_index<-which(meanall!="NA")
+mean_yes<-meanall[mean_yes_index]
+mean_index_yes<-AQIindex(mean_yes)
+mean_index<-integer(length=length(mean))
+mean_index[mean_yes_index]<-mean_index_yes
+mean_index[-mean_yes_index]<-NA
+mean_index<-as.factor(mean_index)
+
+max_yes_index<-which(maxall!="NA")
+max_yes<-maxall[max_yes_index]
+max_index_yes<-AQIindex(max_yes)
+max_index<-integer(length=length(max))
+max_index[max_yes_index]<-max_index_yes
+max_index[-max_yes_index]<-NA
+max_index<-as.factor(max_index)
+
+bjnew_mean<-bjnew %>% 
+  select(Year, Month, Day,week) %>% 
+  mutate(mean21=mean21,mean0=mean0,mean3=mean3,mean6=mean6,mean9=mean9,mean12=mean12,mean15=mean15,mean18=mean18,mean=meanall,max=maxall,sd=sd,mean_index=mean_index,max_index=max_index)
+bjnew_mean<-bjnew_mean[-1,-4]
+write.csv(bjnew_mean,"bjnew_mean.csv",row.names=F)
