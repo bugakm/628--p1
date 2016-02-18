@@ -51,7 +51,7 @@ dailyclean<-function(chr){
 ### 201-300 Very Unhealthy
 ### 301-500 Hazardous
 ### >500 Beyond Index
-###We only use two classification standard, both related with the effect on people not just sensitive groups
+###We only use two classification standards, both related with the effect on people not just sensitive groups
 ###We define polluted level as index>=150, as it is (unhealthy) for all groups of people
 ###We also define heavily polluted as index>=300, as the cautionary statement stated that everyone should (avoid all outdoor exertion)
 
@@ -101,7 +101,7 @@ if(reRead==1){
   dbj2011<-pollute(dbj2011)
   dbj2011$Year<-as.numeric(2011)
   
-  dbj<-rbind(dbj2011,dbj2012,dbj2013,dbj2014,dbj2015)
+  dbj<-rbind(dbj2012,dbj2013,dbj2014,dbj2015)
   ####adding dummies
   
   save(dbj,file="dbj.rdata")
@@ -127,33 +127,34 @@ mbj<-data.frame(year=mbj$Year, month=mbj$Month, aggPollute=mbj$aggPollute, aggHe
 mmean = monthmean(data=mbj, resp='aggPollute', adjmonth=FALSE)
 mmean
 plot(mmean)
+mmeanh = monthmean(data=mbj, resp='aggHeavy', adjmonth=FALSE)
+mmeanh
+plot(mmeanh)
 
 ##Circle Plot of Average Number of Polluted Days Each Month
 plotCircular(area1 = mmean$mean,
              dp = 1, lines = TRUE,
              labels = month.abb,
-             scale = 0.7)
+             scale = 0.7,
+             pieces.col="yellow",
+             main="Monthly Average Polluted Days\n(Index>=150, Bejing)")
 
+plotCircular(area1 = mmeanh$mean,
+             dp = 1, lines = TRUE,
+             labels = month.abb,
+             scale = 0.35,
+             pieces.col="red",
+             main="Monthly Average Heavily Polluted Days\n(Index>=300, Bejing)")
 
-#2. Time Series Plot / monthly data
-
-mbj$yrmon<-round(mbj$year+(1/12)*(mbj$month-1),3)
-
-plot(mbj$yrmon, mbj$aggPollute, type = 'o',
-     pch = 19,
-     ylab = 'Number of polluted days (PM2.5>=150) per month', xlab = 'Time')
-
-#3. STL Decomposition
+#2. STL Decomposition
 
 #Daily Value Time Series Decompose
 mbj_v<-summarise(group_by(dbj,Year,Month),mean=mean(mean_Value_Day))
 d=mbj_v$mean
-t=ts(d,frequency = 12,start=c(2011,1))
+t=ts(d,frequency = 12,start=c(2012,1))
 g<- decompose(t)
 plot(g)
-
-fit1 <- stl(d, t.window=15, s.window="periodic", robust=TRUE)
-plot(fit1)
+#title("Daily Index Decomposition\n(Bejing)")
 
 #Polluted Days Time Series Decompose
 d2=mbj$aggPollute
@@ -167,6 +168,198 @@ t3=ts(d3,frequency = 12,start=c(2011,1))
 g3<- decompose(t3)
 plot(g3)
 
+#3. Time Series Plot / monthly data
+
+mbj$yrmon<-round(mbj$year+(1/12)*(mbj$month-1),3)
+plot(mbj$yrmon, mbj$aggPollute, type = 'o',
+     pch = 19,
+     ylab = 'Index', xlab = 'Time', main='Number of polluted days (PM2.5>=150) per month (Beijing)')
+
+mbj_v$yrmon<-round(mbj_v$Year+(1/12)*(mbj_v$Month-1),3)
+plot(mbj_v$yrmon, mbj_v$mean, type = 'o',
+     pch = 19,
+     ylab = 'Index', xlab = 'Time', main='Average daily index per month (Beijing)')
+
+
 #4. Replicate the peocedure for weekly data
 
+#5. Replicate for Shanghai and Chongqin
+
+##Shanghai
+
+reRead2 <- 1
+if(reRead2==1){
+  
+  sh2015<-dataclean("sh2015.csv")
+  sh2014<-dataclean("sh2014.csv")
+  sh2013<-dataclean("sh2013.csv")
+  sh2012<-dataclean("sh2012.csv")
+  sh<-rbind(sh2012,sh2013,sh2014,sh2015)
+  save(sh,file="sh.rdata")
+  
+  dsh2015<-dailyclean("sh2015.csv")
+  dsh2015<-pollute(dsh2015)
+  dsh2015$Year<-as.numeric(2015)
+  
+  dsh2014<-dailyclean("sh2014.csv")
+  dsh2014<-pollute(dsh2014)
+  dsh2014$Year<-as.numeric(2014)
+  
+  dsh2013<-dailyclean("sh2013.csv")
+  dsh2013<-pollute(dsh2013)
+  dsh2013$Year<-as.numeric(2013)
+  
+  dsh2012<-dailyclean("sh2012.csv")
+  dsh2012<-pollute(dsh2012)
+  dsh2012$Year<-as.numeric(2012)
+
+  dsh<-rbind(dsh2012,dsh2013,dsh2014,dsh2015)
+  
+  save(dsh,file="dsh.rdata")
+  
+}else{
+  
+  load("sh.rdata")
+  load("dsh.rdata")
+  
+} 
+
+msh<-monthpol(dsh)
+msh<-data.frame(year=msh$Year, month=msh$Month, aggPollute=msh$aggPollute, aggHeavy=msh$aggHeavy)
+mmean_sh = monthmean(data=msh, resp='aggPollute', adjmonth=FALSE)
+mmean_sh
+plot(mmean_sh)
+mmeanh_sh = monthmean(data=msh, resp='aggHeavy', adjmonth=FALSE)
+mmeanh_sh
+plot(mmeanh_sh)
+
+plotCircular(area1 = mmean_sh$mean,
+             dp = 1, lines = TRUE,
+             labels = month.abb,
+             scale = 0.7,
+             pieces.col="yellow",
+             main="Monthly Average Polluted Days\n(Index>=150, Shanghai)")
+
+plotCircular(area1 = mmeanh_sh$mean,
+             dp = 1, lines = TRUE,
+             labels = month.abb,
+             scale = 0.35,
+             pieces.col="red",
+             main="Monthly Average Heavily Polluted Days\n(Index>=300, Shanghai)")
+
+msh_v<-summarise(group_by(dsh,Year,Month),mean=mean(mean_Value_Day))
+d_sh=msh_v$mean
+t_sh=ts(d_sh,frequency = 12,start=c(2012,1))
+g_sh<- decompose(t_sh)
+plot(g_sh)
+#'Daily Index Decomposition\n(Shanghai)')
+
+d2_sh=msh$aggPollute
+t2_sh=ts(d2_sh,frequency = 12,start=c(2012,1))
+g2_sh<- decompose(t2_sh)
+plot(g2_sh)
+
+d3_sh=msh$aggHeavy
+t3_sh=ts(d3_sh,frequency = 12,start=c(2012,1))
+g3_sh<- decompose(t3_sh)
+plot(g3_sh)
+
+msh$yrmon<-round(msh$year+(1/12)*(msh$month-1),3)
+plot(msh$yrmon, msh$aggPollute, type = 'o',
+     pch = 19,
+     ylab = 'Index', xlab = 'Time',main='Number of polluted days (PM2.5>=150) per month (Shanghai)')
+
+msh_v$yrmon<-round(msh_v$Year+(1/12)*(msh_v$Month-1),3)
+plot(msh_v$yrmon, msh_v$mean, type = 'o',
+     pch = 19,
+     ylab = 'Index', xlab = 'Time',main='Average daily index per month (Shanghai)')
+
+##Chengdu
+
+reRead3 <- 1
+if(reRead3==1){
+  
+  cd2015<-dataclean("cd2015.csv")
+  cd2014<-dataclean("cd2014.csv")
+  cd2013<-dataclean("cd2013.csv")
+  cd2012<-dataclean("cd2012.csv")
+  cd<-rbind(cd2012,cd2013,cd2014,cd2015)
+  save(cd,file="cd.rdata")
+  
+  dcd2015<-dailyclean("cd2015.csv")
+  dcd2015<-pollute(dcd2015)
+  dcd2015$Year<-as.numeric(2015)
+  
+  dcd2014<-dailyclean("cd2014.csv")
+  dcd2014<-pollute(dcd2014)
+  dcd2014$Year<-as.numeric(2014)
+  
+  dcd2013<-dailyclean("cd2013.csv")
+  dcd2013<-pollute(dcd2013)
+  dcd2013$Year<-as.numeric(2013)
+  
+  dcd2012<-dailyclean("cd2012.csv")
+  dcd2012<-pollute(dcd2012)
+  dcd2012$Year<-as.numeric(2012)
+  
+  dcd<-rbind(dcd2012,dcd2013,dcd2014,dcd2015)
+  
+  save(dcd,file="dcd.rdata")
+  
+}else{
+  
+  load("cd.rdata")
+  load("dcd.rdata")
+  
+} 
+
+mcd<-monthpol(dcd)
+mcd<-data.frame(year=mcd$Year, month=mcd$Month, aggPollute=mcd$aggPollute, aggHeavy=mcd$aggHeavy)
+mmean_cd = monthmean(data=mcd, resp='aggPollute', adjmonth=FALSE)
+mmean_cd
+plot(mmean_cd)
+mmeanh_cd = monthmean(data=mcd, resp='aggHeavy', adjmonth=FALSE)
+mmeanh_cd
+plot(mmeanh_cd)
+
+plotCircular(area1 = mmean_cd$mean,
+             dp = 1, lines = TRUE,
+             labels = month.abb,
+             scale = 0.7,
+             pieces.col="yellow",
+             main="Monthly Average Polluted Days\n(Index>=150, Chengdu)")
+
+plotCircular(area1 = mmeanh_cd$mean,
+             dp = 1, lines = TRUE,
+             labels = month.abb,
+             scale = 0.35,
+             pieces.col="red",
+             main="Monthly Average Heavily Polluted Days\n(Index>=300, Chengdu)")
+
+mcd_v<-summarise(group_by(dcd,Year,Month),mean=mean(mean_Value_Day))
+d_cd=mcd_v$mean
+t_cd=ts(d_cd,frequency = 12,start=c(2012,1))
+g_cd<- decompose(t_cd)
+plot(g_cd)
+#'Daily Index Decomposition\n(Chengdu)')
+
+d2_cd=mcd$aggPollute
+t2_cd=ts(d2_cd,frequency = 12,start=c(2012,1))
+g2_cd<- decompose(t2_cd)
+plot(g2_cd)
+
+d3_cd=mcd$aggHeavy
+t3_cd=ts(d3_sh,frequency = 12,start=c(2012,1))
+g3_cd<- decompose(t3_cd)
+plot(g3_cd)
+
+mcd$yrmon<-round(mcd$year+(1/12)*(mcd$month-1),3)
+plot(mcd$yrmon, mcd$aggPollute, type = 'o',
+     pch = 19,
+     ylab = 'Index', xlab = 'Time',main='Number of polluted days (PM2.5>=150) per month (Chengdu)')
+
+mcd_v$yrmon<-round(mcd_v$Year+(1/12)*(mcd_v$Month-1),3)
+plot(mcd_v$yrmon, mcd_v$mean, type = 'o',
+     pch = 19,
+     ylab = 'Index', xlab = 'Time',main='Average daily index per month (Chengdu)')
 
