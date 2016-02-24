@@ -86,27 +86,41 @@ filter(!date %in% c(WD,WE))
 
 bjweek<-rbind(bjdirty0,bjdirty1,bjdirty2) %>%
 arrange(Year,Month,Day)
-
+table(bjweek$Value[bjweek$Value<=0])
+bjweek$Value[bjweek$Value==-1]<-0
+bjweek$Value[bjweek$Value==-2]<-0
+bjweek$Value[bjweek$Value==-15]<-0
+table(bjweek$Value[bjweek$Value<=0])
 ```
 
 * 4. Dataclean, add the pollution level accroding to the mean daily value.
 
 ```{r}
-dataclean<-function(data){
+dataclean1<-function(data){
     newdata<-data %>%
-    filter(Value > 0) %>%
+    filter(Value>=0) %>%
     group_by(Month,Day) %>%
     mutate(mean_Value_Day = mean(Value)) %>%
     ungroup()
     return(newdata)
 }
-bjclean<-dataclean(bjweek)
+
+dataclean2<-function(data){
+    newdata<-data %>% 
+    filter(Value<0) %>%
+    group_by(Month,Day) %>%
+    mutate(mean_Value_Day = NA) %>%
+    ungroup()
+    return(newdata)
+}
+bjclean1<-dataclean1(bjweek)
+bjclean2<-dataclean2(bjweek)
+bjclean2$Value<-NA
+bjclean<-rbind(bjclean1,bjclean2) %>% arrange(Year, Month, Day, Hour)
 bjclean$DailyIndex<-as.numeric(bjclean$mean_Value_Day>=100)
 bjclean$week<-gsub("0",replacement="weekend",bjclean$week)
 bjclean$week<-gsub("1",replacement="weekday",bjclean$week)
-bjclean$DailyIndex<-gsub("0",replacement="Light",bjclean$DailyIndex)
-bjclean$DailyIndex<-gsub("1",replacement="Heavy",bjclean$DailyIndex)
-knitr::kable(head(bjclean))
+bjclean$week<-as.factor(bjclean$week)
 ```
 
 ```{r}
